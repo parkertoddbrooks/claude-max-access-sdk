@@ -35,8 +35,8 @@ class OAuth {
 
     this.codeChallenge = hash;
 
-    // Generate state for security
-    this.state = crypto.randomBytes(16).toString('hex');
+    // OpenCode uses the verifier as the state!
+    this.state = this.codeVerifier;
 
     return {
       verifier: this.codeVerifier,
@@ -54,6 +54,7 @@ class OAuth {
 
     // Build URL with parameters
     const params = new URLSearchParams({
+      code: 'true', // OpenCode includes this non-standard parameter
       response_type: 'code',
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
