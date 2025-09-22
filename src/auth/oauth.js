@@ -35,9 +35,13 @@ class OAuth {
 
     this.codeChallenge = hash;
 
+    // Generate state for security
+    this.state = crypto.randomBytes(16).toString('hex');
+
     return {
       verifier: this.codeVerifier,
-      challenge: this.codeChallenge
+      challenge: this.codeChallenge,
+      state: this.state
     };
   }
 
@@ -56,8 +60,7 @@ class OAuth {
       scope: 'org:create_api_key user:profile user:inference', // Required scopes from OpenCode
       code_challenge: this.codeChallenge,
       code_challenge_method: 'S256',
-      // Optional: Add state for security
-      state: crypto.randomBytes(16).toString('hex')
+      state: this.state // Use the stored state
     });
 
     return `${this.authUrl}?${params.toString()}`;
@@ -99,24 +102,23 @@ class OAuth {
   /**
    * Exchange authorization code for tokens
    */
-  async exchangeCode(code) {
+  async exchangeCode(code, stateFromUrl = null) {
     if (!this.codeVerifier) {
       throw new Error('No code verifier found. Please start authentication flow first.');
     }
 
     try {
-      // Token exchange request (using form-urlencoded as per OAuth spec)
-      const tokenData = new URLSearchParams({
+      // Token exchange request (OpenCode format - JSON with both code and state)
+      const response = await axios.post(this.tokenUrl, {
+        code: code,
+        state: stateFromUrl || this.state, // Use provided state or stored state
         grant_type: 'authorization_code',
         client_id: this.clientId,
-        code: code,
         redirect_uri: this.redirectUri,
         code_verifier: this.codeVerifier
-      });
-
-      const response = await axios.post(this.tokenUrl, tokenData.toString(), {
+      }, {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json'
         }
       });
 
