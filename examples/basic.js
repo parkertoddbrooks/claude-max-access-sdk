@@ -34,7 +34,7 @@ async function main() {
     console.log('💭 Sending request to Claude...\n');
 
     const response = await sdk.request({
-      model: 'claude-3.5-sonnet',
+      model: 'claude-3-5-sonnet-20241022',
       messages: [
         {
           role: 'user',

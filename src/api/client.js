@@ -18,7 +18,7 @@ class ApiClient {
 
     // Prepare request
     const requestData = {
-      model: payload.model || 'claude-3.5-sonnet',
+      model: payload.model || 'claude-3-5-sonnet-20241022', // Full model name required
       messages: payload.messages,
       max_tokens: payload.max_tokens || 1024,
       ...payload // Allow other parameters
