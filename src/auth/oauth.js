@@ -53,7 +53,7 @@ class OAuth {
       response_type: 'code',
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
-      scope: 'openid profile email offline_access', // Standard OAuth scopes
+      scope: '', // Empty scope - Claude OAuth requires the parameter but with no value
       code_challenge: this.codeChallenge,
       code_challenge_method: 'S256',
       // Optional: Add state for security
