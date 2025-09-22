@@ -5,7 +5,7 @@ class ApiClient {
     this.tokenManager = tokenManager;
     this.baseUrl = 'https://api.anthropic.com/v1/messages';
 
-    // Beta headers from OpenCode
+    // Beta headers from OpenCode - oauth-2025-04-20 is CRITICAL for OAuth
     this.betaHeaders = 'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14';
   }
 
@@ -72,7 +72,19 @@ class ApiClient {
 
       // Handle other errors
       if (error.response) {
-        const errorMessage = error.response.data?.error?.message || error.response.statusText;
+        const errorData = error.response.data;
+        let errorMessage;
+
+        if (errorData?.error?.message) {
+          errorMessage = errorData.error.message;
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (typeof errorData === 'object') {
+          errorMessage = JSON.stringify(errorData, null, 2);
+        } else {
+          errorMessage = error.response.statusText;
+        }
+
         throw new Error(`API request failed: ${errorMessage}`);
       }
 
