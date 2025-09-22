@@ -53,6 +53,7 @@ class OAuth {
       response_type: 'code',
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
+      scope: 'claude_chat', // Required scope for Claude OAuth
       code_challenge: this.codeChallenge,
       code_challenge_method: 'S256',
       // Optional: Add state for security
