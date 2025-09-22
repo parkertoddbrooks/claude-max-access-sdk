@@ -53,7 +53,7 @@ class OAuth {
       response_type: 'code',
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
-      scope: '', // Empty scope - Claude OAuth requires the parameter but with no value
+      scope: 'org:create_api_key user:profile user:inference', // Required scopes from OpenCode
       code_challenge: this.codeChallenge,
       code_challenge_method: 'S256',
       // Optional: Add state for security
