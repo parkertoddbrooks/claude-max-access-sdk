@@ -53,12 +53,23 @@ By implementing standard OAuth 2.0 protocols with PKCE flow, we can provide deve
 
 ### Core Functionality
 
-#### 1. Authentication Module
+#### 1. Authentication Module (Manual Code Input - Like Claude Code)
 - **OAuth 2.0 PKCE Implementation**
   - Generate code challenge/verifier pairs
-  - Handle authorization flow
+  - Build authorization URL with PKCE parameters
+  - Open browser to Claude login page
+  - **Manual code input**: User copies code from redirect URL
   - Exchange authorization code for tokens
   - Store tokens securely
+
+- **Authentication Flow (Same as Claude Code CLI)**
+  1. SDK generates OAuth URL with PKCE challenge
+  2. Opens browser to `https://claude.ai/oauth/authorize`
+  3. User logs in with Claude account
+  4. Browser redirects to `https://console.anthropic.com/oauth/code/callback?code=XXX`
+  5. User manually copies the `code` parameter from URL
+  6. User pastes code back into the app/terminal
+  7. SDK exchanges code for access/refresh tokens
 
 - **Endpoints**
   - Authorization: `https://claude.ai/oauth/authorize`
@@ -158,14 +169,23 @@ const sdk = new ClaudeSDK({
 });
 ```
 
-#### Authentication
+#### Authentication (Manual Code Input Flow - Same as Claude Code/OpenCode)
 ```javascript
-// Automatic flow (opens browser)
-const tokens = await sdk.authenticate();
+// Primary flow - Manual code input (like Claude Code CLI)
+// 1. SDK generates OAuth URL and opens browser
+const authUrl = await sdk.startAuth();
+console.log('Opening browser to:', authUrl);
 
-// Manual code input
-await sdk.startAuth(); // Opens browser
-const tokens = await sdk.exchangeCode(manuallyProvidedCode);
+// 2. User logs in and gets redirected to:
+// https://console.anthropic.com/oauth/code/callback?code=AUTH_CODE_HERE
+
+// 3. User copies the 'code' parameter from the URL
+// 4. User pastes it back into the app
+const code = await sdk.promptForCode(); // or get from user input
+const tokens = await sdk.exchangeCode(code);
+
+// Alternative: All-in-one method with built-in prompt
+const tokens = await sdk.authenticate(); // Opens browser & prompts for code
 ```
 
 #### Making Requests
@@ -280,15 +300,23 @@ await sdk.refreshToken();
 
 ## Appendix
 
-### OAuth Flow Diagram
+### OAuth Flow Diagram (Manual Code Input)
 ```
-User -> SDK -> Browser (Claude login)
-    <- Authorization Code
-SDK -> Token Endpoint
-    <- Access/Refresh Tokens
-SDK -> API Endpoint (with Bearer token)
-    <- Response
+1. User runs app
+2. SDK generates OAuth URL with PKCE
+3. SDK opens browser -> claude.ai/oauth/authorize
+4. User logs in to Claude
+5. Browser redirects to -> console.anthropic.com/oauth/code/callback?code=ABC123
+6. User sees redirect page (might be error page - that's ok!)
+7. User copies 'ABC123' from the URL
+8. User returns to app/terminal
+9. App prompts: "Enter the code from the URL:"
+10. User pastes: ABC123
+11. SDK exchanges code for tokens -> console.anthropic.com/v1/oauth/token
+12. SDK can now make API calls with Bearer token
 ```
+
+This is exactly how Claude Code CLI and OpenCode work - no local server needed!
 
 ### Example Error Codes
 - `AUTH_FAILED`: OAuth flow failed
