@@ -1,0 +1,42 @@
+{
+  "name": "claude-oauth-sdk",
+  "version": "0.1.0",
+  "description": "A lightweight Node.js SDK for authenticating with Claude Max Plan using OAuth 2.0",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.js",
+    "example:basic": "node examples/basic.js",
+    "example:manual": "node examples/manual-auth.js"
+  },
+  "keywords": [
+    "claude",
+    "anthropic",
+    "oauth",
+    "sdk",
+    "ai",
+    "max-plan"
+  ],
+  "author": "Parker",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.57.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/claude-oauth-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/claude-oauth-sdk/issues"
+  }
+}
