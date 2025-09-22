@@ -28,6 +28,7 @@ class ApiClient {
       const response = await axios.post(this.baseUrl, requestData, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
+          'anthropic-version': '2023-06-01', // Required version header
           'anthropic-beta': this.betaHeaders,
           'Content-Type': 'application/json',
           // Important: Do NOT include x-api-key header
@@ -49,6 +50,7 @@ class ApiClient {
           const retryResponse = await axios.post(this.baseUrl, requestData, {
             headers: {
               'Authorization': `Bearer ${newToken}`,
+              'anthropic-version': '2023-06-01', // Required version header
               'anthropic-beta': this.betaHeaders,
               'Content-Type': 'application/json'
             }
