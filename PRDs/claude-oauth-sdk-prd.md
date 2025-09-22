@@ -150,6 +150,21 @@ claude-oauth-sdk/
 │   ├── basic.js           # Simple usage example
 │   ├── manual-auth.js     # Manual code input flow
 │   └── web-server.js      # Express server example
+├── cli/                   # Demo CLI Application (built after SDK)
+│   ├── index.js           # CLI entry point
+│   ├── commands/
+│   │   ├── auth.js        # Authentication command
+│   │   ├── chat.js        # Interactive chat command
+│   │   ├── ask.js         # Single query command
+│   │   ├── usage.js       # Usage statistics command
+│   │   └── logout.js      # Clear tokens command
+│   ├── lib/
+│   │   ├── config.js      # CLI configuration
+│   │   └── prompts.js     # User interaction helpers
+│   ├── package.json       # Separate package for CLI
+│   ├── README.md          # CLI-specific documentation
+│   └── bin/
+│       └── claude-cli     # Executable script
 ├── tests/
 │   └── ...                # Test files
 ├── package.json
@@ -157,6 +172,54 @@ claude-oauth-sdk/
 ├── LICENSE
 └── .gitignore
 ```
+
+### Demo CLI Application (claude-cli)
+
+The demo CLI will be built AFTER the SDK is complete to provide a working example and testing tool.
+
+#### Purpose
+- **Demonstration**: Show developers how the SDK works in practice
+- **Testing**: Allow users to test authentication and API calls before integration
+- **Validation**: Verify SDK functionality with real Max Plan accounts
+- **Learning**: Provide code examples through a working implementation
+
+#### CLI Commands
+```bash
+# Install globally
+npm install -g @claude-oauth/cli
+
+# Authenticate with Claude Max Plan
+claude-cli auth
+# -> Opens browser, prompts for code, saves tokens
+
+# Single question
+claude-cli ask "What is the capital of France?"
+# -> Makes one API call and returns response
+
+# Interactive chat session
+claude-cli chat
+# -> Starts interactive session with Claude
+
+# Check usage statistics
+claude-cli usage
+# -> Shows prompts used, time until reset
+
+# Clear stored tokens
+claude-cli logout
+# -> Removes saved authentication
+
+# Help and version
+claude-cli --help
+claude-cli --version
+```
+
+#### Implementation Details
+- Built using Commander.js or Yargs for CLI framework
+- Stores tokens in `~/.claude-cli/` directory
+- Uses the SDK as a dependency
+- Includes spinner/progress indicators for better UX
+- Colored output for readability
+- Error handling with helpful messages
 
 ### API Design
 
@@ -240,6 +303,14 @@ await sdk.refreshToken();
 - [ ] Create examples
 - [ ] Performance optimization
 
+### Phase 5: Demo CLI Application (Week 5)
+- [ ] Build interactive CLI using the completed SDK
+- [ ] Implement authentication command
+- [ ] Add chat/query functionality
+- [ ] Include usage tracking command
+- [ ] Create installer for global npm installation
+- [ ] Write CLI-specific documentation
+
 ## Risk Analysis
 
 ### Technical Risks
@@ -275,6 +346,9 @@ await sdk.refreshToken();
 - [ ] Documentation complete
 - [ ] 3+ working examples
 - [ ] Successfully tested with Max Plan account
+- [ ] Demo CLI application working and installable
+- [ ] CLI demonstrates all SDK features
+- [ ] Video or GIF showing CLI in action
 
 ### Adoption Metrics (Post-Launch)
 - 100+ GitHub stars within 3 months
@@ -284,12 +358,13 @@ await sdk.refreshToken();
 
 ## Timeline
 
-- **Week 1-2**: Core implementation
+- **Week 1-2**: Core SDK implementation
 - **Week 3**: Testing and refinement
 - **Week 4**: Documentation and examples
-- **Week 5**: Beta release
-- **Week 6**: Incorporate feedback
-- **Week 7**: 1.0 release
+- **Week 5**: Demo CLI application development
+- **Week 6**: Beta release (SDK + CLI)
+- **Week 7**: Incorporate feedback
+- **Week 8**: 1.0 release
 
 ## Open Questions
 
