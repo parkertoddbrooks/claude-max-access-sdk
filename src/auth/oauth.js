@@ -105,15 +105,18 @@ class OAuth {
     }
 
     try {
-      const response = await axios.post(this.tokenUrl, {
+      // Token exchange request (using form-urlencoded as per OAuth spec)
+      const tokenData = new URLSearchParams({
         grant_type: 'authorization_code',
         client_id: this.clientId,
         code: code,
         redirect_uri: this.redirectUri,
         code_verifier: this.codeVerifier
-      }, {
+      });
+
+      const response = await axios.post(this.tokenUrl, tokenData.toString(), {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         }
       });
 
@@ -130,7 +133,11 @@ class OAuth {
       return tokens;
     } catch (error) {
       if (error.response) {
-        throw new Error(`Token exchange failed: ${error.response.data.error || error.response.statusText}`);
+        const errorData = error.response.data;
+        const errorMessage = typeof errorData === 'object'
+          ? JSON.stringify(errorData, null, 2)
+          : errorData.error || error.response.statusText;
+        throw new Error(`Token exchange failed (${error.response.status}): ${errorMessage}`);
       }
       throw new Error(`Token exchange failed: ${error.message}`);
     }

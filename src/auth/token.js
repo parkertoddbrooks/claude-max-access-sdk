@@ -59,13 +59,16 @@ class TokenManager {
     }
 
     try {
-      const response = await axios.post(this.tokenUrl, {
+      // Refresh token request (using form-urlencoded as per OAuth spec)
+      const refreshData = new URLSearchParams({
         grant_type: 'refresh_token',
         client_id: this.clientId,
         refresh_token: tokens.refresh_token
-      }, {
+      });
+
+      const response = await axios.post(this.tokenUrl, refreshData.toString(), {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         }
       });
 

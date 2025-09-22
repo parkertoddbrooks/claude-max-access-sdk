@@ -50,10 +50,18 @@ async function main() {
     console.log('   Just copy the "code" parameter from the URL.\n');
 
     // Step 5: Get code from user
-    const code = await getUserInput('📝 Step 5: Paste the authorization code here: ');
+    let code = await getUserInput('📝 Step 5: Paste the authorization code here: ');
 
     if (!code) {
       throw new Error('No code provided');
+    }
+
+    // Clean the code (remove any hash or state parameter that might be attached)
+    if (code.includes('#')) {
+      code = code.split('#')[0];
+    }
+    if (code.includes('&')) {
+      code = code.split('&')[0];
     }
 
     // Step 6: Exchange code for tokens
