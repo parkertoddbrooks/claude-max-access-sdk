@@ -1,7 +1,7 @@
 {
-  "name": "claude-oauth-sdk",
+  "name": "claude-max-access-sdk",
   "version": "0.1.0",
-  "description": "A lightweight Node.js SDK for authenticating with Claude Max Plan using OAuth 2.0",
+  "description": "A Node.js SDK enabling Claude Max Plan users to use their subscription in custom applications",
   "main": "claude-sdk-final.js",
   "scripts": {
     "test": "jest",
@@ -38,9 +38,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/claude-oauth-sdk.git"
+    "url": "https://github.com/yourusername/claude-max-access-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/claude-oauth-sdk/issues"
+    "url": "https://github.com/yourusername/claude-max-access-sdk/issues"
   }
 }

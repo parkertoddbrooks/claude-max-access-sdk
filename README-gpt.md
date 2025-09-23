@@ -24,7 +24,7 @@
   ## Getting Started
   ### Installation
   ```bash
-  npm install claude-oauth-sdk
+  npm install claude-max-access-sdk
   # Optional, required for the Max Plan route:
   npm install -g opencode
   ```
@@ -34,7 +34,7 @@
   opencode auth login       # Authenticate the CLI once
   ```
   ```javascript
-  const ClaudeSDK = require('claude-oauth-sdk');
+  const ClaudeSDK = require('claude-max-access-sdk');
   const sdk = new ClaudeSDK({ method: 'opencode' });
 
   const response = await sdk.sendMessage('Hello, Claude!');
@@ -43,7 +43,7 @@
 
   ### Option 2 – Anthropic Console API Key
   ```javascript
-  const ClaudeSDK = require('claude-oauth-sdk');
+  const ClaudeSDK = require('claude-max-access-sdk');
   const sdk = new ClaudeSDK({ method: 'apikey', apiKey: process.env.ANTHROPIC_API_KEY });
 
   const response = await sdk.sendMessage('Quick status update, please.');

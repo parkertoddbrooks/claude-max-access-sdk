@@ -1,4 +1,4 @@
-# Claude OAuth SDK
+# Claude Max Access SDK
 
 ## The Problem We Solved
 
@@ -19,7 +19,7 @@ Both paths give you the same clean interface. Pick your auth method, send messag
 ## Installation
 
 ```bash
-npm install claude-oauth-sdk
+npm install claude-max-access-sdk
 
 # Max Plan users need OpenCode too:
 npm install -g opencode
@@ -36,7 +36,7 @@ opencode auth login
 ```
 
 ```javascript
-const ClaudeSDK = require('claude-oauth-sdk');
+const ClaudeSDK = require('claude-max-access-sdk');
 const sdk = new ClaudeSDK({ method: 'opencode' });
 
 const response = await sdk.sendMessage('Explain quantum computing in one sentence.');
@@ -46,7 +46,7 @@ console.log(response.content[0].text);
 ### API Key
 
 ```javascript
-const ClaudeSDK = require('claude-oauth-sdk');
+const ClaudeSDK = require('claude-max-access-sdk');
 const sdk = new ClaudeSDK({
   method: 'apikey',
   apiKey: 'sk-ant-api03-...'

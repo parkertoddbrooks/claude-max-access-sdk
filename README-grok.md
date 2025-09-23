@@ -21,7 +21,7 @@ Our solution: Proxy Max Plan requests through OpenCode’s CLI or use API keys f
 ## Installation
 
 ```bash
-npm install claude-oauth-sdk
+npm install claude-max-access-sdk
 # For Max Plan (OAuth) users, also install:
 npm install -g opencode
 ```
@@ -38,7 +38,7 @@ opencode auth login
 
 Then use the SDK:
 ```javascript
-const ClaudeSDK = require('claude-oauth-sdk');
+const ClaudeSDK = require('claude-max-access-sdk');
 const sdk = new ClaudeSDK({ method: 'opencode' });
 const response = await sdk.sendMessage('Hello, Claude!');
 console.log(response.content[0].text);
@@ -48,7 +48,7 @@ console.log(response.content[0].text);
 
 Get your API key from [Anthropic Console](https://console.anthropic.com).
 ```javascript
-const ClaudeSDK = require('claude-oauth-sdk');
+const ClaudeSDK = require('claude-max-access-sdk');
 const sdk = new ClaudeSDK({
   method: 'apikey',
   apiKey: process.env.ANTHROPIC_API_KEY
