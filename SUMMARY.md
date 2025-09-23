@@ -78,12 +78,15 @@ Authorization: Bearer sk-ant-oat01-[SAME TOKEN]
 Since we can't bypass the client-lock, we built an SDK that uses OpenCode as infrastructure:
 
 ```javascript
-// claude-sdk-final.js
+// claude-sdk-final.js - Using safer spawn method
 class ClaudeSDK {
   async sendMessage(message) {
     if (this.method === 'opencode') {
       // Route through OpenCode (works with Max Plan)
-      return exec(`echo "${message}" | opencode run`);
+      const child = spawn('opencode', ['run']);
+      child.stdin.write(message + '\n');
+      child.stdin.end();
+      // Process output...
     } else {
       // Direct API (requires Console API key)
       return fetch('https://api.anthropic.com/v1/messages', ...);

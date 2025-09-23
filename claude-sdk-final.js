@@ -119,7 +119,10 @@ class ClaudeSDK {
         model: options.model || 'claude-3-5-sonnet-20241022',
         messages: [{
           role: 'user',
-          content: typeof message === 'string' ? message : JSON.stringify(message)
+          content: [{
+            type: 'text',
+            text: typeof message === 'string' ? message : JSON.stringify(message)
+          }]
         }],
         max_tokens: options.maxTokens || 1000
       },
@@ -221,12 +224,15 @@ class ClaudeSDK {
         const saveChoice = await question('   Save API key for future sessions? (y/N): ');
 
         if (saveChoice.toLowerCase() === 'y') {
-          // Save the key
-          await fs.writeFile('./claude-api-key.json', JSON.stringify({
+          // Save the key with restricted permissions
+          const filename = './claude-api-key.json';
+          await fs.writeFile(filename, JSON.stringify({
             apiKey: this.apiKey,
             created: new Date().toISOString()
           }, null, 2));
-          console.log('✅ API key authenticated and saved!');
+          // Set file permissions to 600 (read/write for owner only)
+          await fs.chmod(filename, 0o600);
+          console.log('✅ API key authenticated and saved with restricted permissions (600)!');
         } else {
           console.log('✅ API key authenticated (session only)!');
         }

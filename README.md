@@ -63,7 +63,7 @@ node claude-chat.js
 
 ⚠️ **API keys and tokens are stored in plaintext** by default. The SDK will prompt you before saving credentials. Consider:
 - Using environment variables instead
-- Restricting file permissions (the SDK sets 600 on saved files)
+- File permissions are automatically set to 600 (owner read/write only) when saved
 - Never committing credential files to version control
 
 ## API Reference
@@ -73,8 +73,7 @@ node claude-chat.js
 ```javascript
 new ClaudeSDK({
   method: 'auto' | 'opencode' | 'apikey',  // Default: 'auto'
-  apiKey: 'sk-ant-api03-...',              // For API key method
-  debug: false                              // Enable debug logging
+  apiKey: 'sk-ant-api03-...'               // For API key method
 })
 ```
 

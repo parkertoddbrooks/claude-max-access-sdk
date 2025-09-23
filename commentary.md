@@ -212,11 +212,12 @@ For future developers: The path forward is not fighting the restriction but work
 
 *This commentary documents the investigation conducted on September 23, 2025, exploring OAuth token restrictions in Claude's API ecosystem.*
 
-## Appendix: Key Files
+## Appendix: Current SDK Files
 
-- `oauth-flow.js` - Complete OAuth implementation (works but tokens are restricted)
-- `claude-sdk-final.js` - SDK that uses OpenCode as backend (works)
-- `use-opencode-backend.js` - Direct OpenCode integration (works)
-- `opencode-mimic.js` - Attempt to replicate OpenCode's requests (fails)
+- `claude-sdk-final.js` - Main SDK that uses OpenCode as backend (works)
+- `claude-chat.js` - Interactive chat application
+- `example.js` - Basic usage example
+- `TRAFFIC_ANALYSIS_RESULTS.md` - mitmproxy findings proving client-locking
+- `FORENSICS.md` - Certificate analysis showing no client certs
 
-Each file serves as evidence of what works, what doesn't, and why.
+Historical files referenced in this investigation are preserved in `_git-ignore-do-not-erase/_old/` for audit trail purposes.

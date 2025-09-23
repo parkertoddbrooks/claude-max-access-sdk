@@ -145,7 +145,7 @@ strings $(which opencode) | grep -i "certificate"
 
 ## Conclusion
 
-OpenCode achieves its whitelisted status through **embedded client certificates** used in mutual TLS authentication. This is a cryptographically secure method that cannot be replicated without Anthropic's cooperation. The OAuth tokens are audience-locked and require both the token AND a valid client certificate to work.
+OpenCode achieves its whitelisted status through **server-side client validation**, not through client certificates as initially hypothesized. Our certificate extraction found only standard root CAs, not client certificates. The authentication mechanism remains server-side, validating client identity through methods like User-Agent checking, TLS fingerprinting, or other proprietary mechanisms.
 
 Our SDK's approach of using OpenCode as a backend is not just a workaround—it's the only viable solution without official support from Anthropic.
 
