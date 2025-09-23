@@ -112,9 +112,10 @@ class ClaudeOAuthDirect {
       const tokenResponse = await axios.post(
         `${this.oauth.authBaseToken}/v1/oauth/token`,
         {
+          code: code,
+          state: state,  // Include state in the request
           grant_type: 'authorization_code',
           client_id: this.oauth.clientId,
-          code: code,
           redirect_uri: this.oauth.redirectUri,
           code_verifier: verifier
         },
