@@ -1,8 +1,16 @@
 # The OAuth "Handshake" Discovery
 
+## ⚠️ UPDATE: Approach No Longer Works
+
+**As of September 2025, Anthropic has patched this approach.** OAuth tokens obtained through the Console OAuth flow are now explicitly restricted with the error:
+
+> "This credential is only authorized for use with Claude Code and cannot be used for other API requests."
+
 ## Executive Summary
 
 After analyzing the `anthropic-claude-max-proxy` repository and testing various approaches, we've discovered that the so-called "handshake" is not cryptographic but rather **precise request forgery** - mimicking the exact HTTP signature of whitelisted clients like Claude Code or OpenCode.
+
+**However, this approach no longer works as Anthropic has implemented server-side token restrictions.**
 
 ## Key Findings
 
