@@ -54,6 +54,9 @@ class ClaudeOAuthDirect {
     const { verifier, challenge } = this.generatePKCE();
     const state = require('crypto').randomBytes(16).toString('hex');
 
+    // Store verifier and state for later use
+    this.pendingAuth = { verifier, state };
+
     const authUrl = new URL(`${this.oauth.authBaseAuthorize}/oauth/authorize`);
     authUrl.searchParams.append('response_type', 'code');
     authUrl.searchParams.append('client_id', this.oauth.clientId);
@@ -72,6 +75,12 @@ class ClaudeOAuthDirect {
     console.log('   https://console.anthropic.com/oauth/code/callback?code=XXX&state=YYY');
     console.log('4. Copy the ENTIRE redirect URL\n');
 
+    // Debug info
+    console.log('Debug info (for troubleshooting):');
+    console.log(`  Verifier: ${verifier}`);
+    console.log(`  Challenge: ${challenge}`);
+    console.log(`  State: ${state}\n`);
+
     // Get the callback URL from user
     const readline = require('readline').createInterface({
       input: process.stdin,
@@ -85,38 +94,59 @@ class ClaudeOAuthDirect {
     // Parse the code
     const url = new URL(callbackUrl);
     const code = url.searchParams.get('code');
+    const returnedState = url.searchParams.get('state');
 
     if (!code) {
       throw new Error('No authorization code found in URL');
     }
 
+    // Verify state matches
+    if (returnedState !== state) {
+      console.warn('⚠️  State mismatch - this might indicate a security issue or stale URL');
+    }
+
     // Exchange code for tokens
     console.log('\n📡 Exchanging code for tokens...');
-    const tokenResponse = await axios.post(
-      `${this.oauth.authBaseToken}/v1/oauth/token`,
-      {
-        grant_type: 'authorization_code',
-        client_id: this.oauth.clientId,
-        code: code,
-        redirect_uri: this.oauth.redirectUri,
-        code_verifier: verifier
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
+
+    try {
+      const tokenResponse = await axios.post(
+        `${this.oauth.authBaseToken}/v1/oauth/token`,
+        {
+          grant_type: 'authorization_code',
+          client_id: this.oauth.clientId,
+          code: code,
+          redirect_uri: this.oauth.redirectUri,
+          code_verifier: verifier
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Claude-Code/1.0.0'  // Try with UA
+          }
         }
+      );
+
+      this.tokens = tokenResponse.data;
+
+      // Save tokens
+      await this.saveTokens();
+
+      console.log('✅ OAuth tokens obtained successfully!');
+      console.log(`   Access token: ${this.tokens.access_token.substring(0, 20)}...`);
+
+      return this.tokens;
+    } catch (error) {
+      console.error('\n❌ Token exchange failed:');
+      if (error.response?.data) {
+        console.error('Error response:', JSON.stringify(error.response.data, null, 2));
       }
-    );
-
-    this.tokens = tokenResponse.data;
-
-    // Save tokens
-    await this.saveTokens();
-
-    console.log('✅ OAuth tokens obtained successfully!');
-    console.log(`   Access token: ${this.tokens.access_token.substring(0, 20)}...`);
-
-    return this.tokens;
+      console.error('\nPossible issues:');
+      console.error('1. The authorization code might have expired (they expire quickly)');
+      console.error('2. The code might have already been used');
+      console.error('3. There might be a PKCE verifier mismatch');
+      console.error('\nTry running the auth command again with a fresh authorization.');
+      throw error;
+    }
   }
 
   /**
