@@ -83,4 +83,7 @@ docs/.docusaurus/
 # Misc
 *.bak
 *.backup
-*~_git-ignore-do-not-erase/
+*~
+
+# Private directory - DO NOT TRACK
+_git-ignore-do-not-erase/
