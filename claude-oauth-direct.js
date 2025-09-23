@@ -193,6 +193,7 @@ class ClaudeOAuthDirect {
     const headers = {
       'Authorization': `Bearer ${this.tokens.access_token}`,
       'anthropic-beta': this.betaHeaders.join(','),
+      'anthropic-version': '2023-06-01',  // Required API version
       'Content-Type': 'application/json',
       'User-Agent': options.userAgent || 'Claude-Code/1.0.0'
     };

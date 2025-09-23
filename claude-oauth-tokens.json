@@ -1,0 +1,15 @@
+{
+  "token_type": "Bearer",
+  "access_token": "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",
+  "expires_in": 28800,
+  "refresh_token": "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",
+  "scope": "user:inference user:profile",
+  "organization": {
+    "uuid": "60f402a6-7973-43fc-96b5-f864f7d0c1ab",
+    "name": "remote.bunkers_5i@icloud.com's Organization"
+  },
+  "account": {
+    "uuid": "9f4523ab-afb5-410e-a6c0-8992a0692a61",
+    "email_address": "remote.bunkers_5i@icloud.com"
+  }
+}
