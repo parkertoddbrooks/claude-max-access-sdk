@@ -83,4 +83,4 @@ docs/.docusaurus/
 # Misc
 *.bak
 *.backup
-*~
+*~_git-ignore-do-not-erase/
