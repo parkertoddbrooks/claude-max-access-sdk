@@ -6,7 +6,7 @@ This project uncovers why OAuth tokens are restricted and provides a practical w
 
 ## Quickstart: 
 
-1. Grok README: README-grok.md
-2. GPT README: README-gpt.md
-3. Claude README: README-claude.md
+1. Grok README: [README-grok.md](README-grok.md)
+2. GPT README: [README-gpt.md](README-gpt.md)
+3. Claude README: [README-claude.md](README-claude.md)
 
