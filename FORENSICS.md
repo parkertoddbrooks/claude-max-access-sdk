@@ -6,14 +6,20 @@ Through systematic testing, we've identified how OpenCode achieves its whitelist
 
 ## Key Findings
 
-### 1. Embedded Certificates (CONFIRMED ✅)
+### 1. Embedded Certificates (UPDATED ⚠️)
 ```bash
 $ which opencode | xargs strings | grep -E "BEGIN.*(CERTIFICATE|KEY)" | wc -l
 155
+
+# Extraction and analysis reveals:
+$ ./tools/extract-certs.sh
+Extracted cert files count: 146
 ```
-- **155 certificate/key references** found in the OpenCode binary
-- These are likely client certificates for mutual TLS (mTLS) authentication
-- The certificates are compiled into the binary, not stored as separate files
+- **146 certificates extracted** from the OpenCode binary
+- **IMPORTANT UPDATE**: These are standard root CA certificates, NOT client certificates
+- All certificates are self-signed root CAs (DigiCert, Entrust, QuoVadis, etc.)
+- No Anthropic-specific or client certificates found
+- These appear to be an embedded certificate trust store
 
 ### 2. Standard API Endpoint (CONFIRMED ✅)
 ```bash
@@ -47,14 +53,18 @@ issuer=C=US, O=Google Trust Services, CN=WE1
 - Server doesn't require client certificates for initial connection
 - But may request them after initial handshake
 
-## Authentication Mechanism Identified
+## Authentication Mechanism Identified (REVISED)
 
-Based on our forensic analysis, OpenCode uses **Mutual TLS (mTLS)** authentication:
+Based on our forensic analysis, the authentication mechanism is more subtle than initially thought:
 
-1. **Embedded Client Certificate**: OpenCode has a client certificate compiled into the binary
-2. **Certificate Presentation**: During TLS handshake, OpenCode presents this certificate
-3. **Server Validation**: Anthropic's server validates the certificate against a whitelist
-4. **OAuth Token + mTLS**: Both the OAuth token AND the client cert must be valid
+1. **Embedded Trust Store**: The 146 certificates are standard root CAs, not client certificates
+2. **Alternative Possibilities**:
+   - **Certificate Pinning**: OpenCode may pin specific server certificates
+   - **Hidden Client Cert**: Client certificate may be embedded differently (not as PEM)
+   - **Application Signature**: Server may validate the binary signature/hash
+   - **Custom Headers**: OpenCode may send identifying headers that we haven't detected
+3. **Server Validation**: Anthropic's server still discriminates between OpenCode and other clients
+4. **OAuth Token + Identity**: Both the OAuth token AND some form of client identity are required
 
 ## Why This Can't Be Replicated
 
