@@ -44,7 +44,18 @@ class FileStorage {
     try {
       const data = await fs.readFile(this.filePath, 'utf8');
       const json = JSON.parse(data);
-      return key ? json[key] : json;
+
+      // Handle both flat format (authenticate.js) and nested format
+      if (key === 'tokens') {
+        // If the file has a 'tokens' key, return that
+        if (json.tokens) return json.tokens;
+        // Otherwise, if it has 'access' at root, it's flat format
+        if (json.access) return json;
+        // Otherwise return the nested value
+        return json[key];
+      }
+
+      return json[key];
     } catch {
       return null;
     }
@@ -53,16 +64,21 @@ class FileStorage {
   async set(key, value) {
     await this.ensureDirectory();
 
-    let data = {};
-    try {
-      const existing = await fs.readFile(this.filePath, 'utf8');
-      data = JSON.parse(existing);
-    } catch {
-      // File doesn't exist or is invalid
-    }
+    // For tokens, save in flat format for compatibility with authenticate.js
+    if (key === 'tokens') {
+      await fs.writeFile(this.filePath, JSON.stringify(value, null, 2));
+    } else {
+      let data = {};
+      try {
+        const existing = await fs.readFile(this.filePath, 'utf8');
+        data = JSON.parse(existing);
+      } catch {
+        // File doesn't exist or is invalid
+      }
 
-    data[key] = value;
-    await fs.writeFile(this.filePath, JSON.stringify(data, null, 2));
+      data[key] = value;
+      await fs.writeFile(this.filePath, JSON.stringify(data, null, 2));
+    }
   }
 
   async clear() {

@@ -15,15 +15,22 @@ class APIClient {
   async request(payload) {
     const accessToken = await this.tokenManager.getAccessToken();
 
+    console.log('Making request to:', API_URL);
+    console.log('Access token:', accessToken ? accessToken.substring(0, 30) + '...' : 'NO TOKEN');
+    console.log('With payload:', JSON.stringify(payload, null, 2));
+
     try {
       const response = await axios.post(API_URL, payload, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+          'authorization': `Bearer ${accessToken}`,
+          'content-type': 'application/json',
           'anthropic-version': '2023-06-01',
           'anthropic-beta': 'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14'
         }
       });
+
+      console.log('API Response status:', response.status);
+      console.log('API Response data:', response.data);
 
       return response.data;
     } catch (error) {
@@ -34,8 +41,8 @@ class APIClient {
         // Retry with new token
         const response = await axios.post(API_URL, payload, {
           headers: {
-            'Authorization': `Bearer ${newToken}`,
-            'Content-Type': 'application/json',
+            'authorization': `Bearer ${newToken}`,
+            'content-type': 'application/json',
             'anthropic-version': '2023-06-01',
             'anthropic-beta': 'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14'
           }
@@ -65,7 +72,22 @@ class APIClient {
     };
 
     const response = await this.request(payload);
-    return response.content?.[0]?.text || '';
+
+    // Debug logging
+    if (!response) {
+      console.log('No response received from API');
+      return '';
+    }
+    if (!response.content) {
+      console.log('Response has no content:', response);
+      return '';
+    }
+    if (!response.content[0]) {
+      console.log('Response content is empty:', response.content);
+      return '';
+    }
+
+    return response.content[0].text || '';
   }
 
   /**

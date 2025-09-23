@@ -27,8 +27,10 @@ class TokenManager {
    */
   async saveTokens(tokens) {
     this.tokens = {
-      ...tokens,
-      expires: tokens.expires_in ? Date.now() + (tokens.expires_in * 1000) : null
+      access: tokens.access_token,
+      refresh: tokens.refresh_token,
+      expires: tokens.expires_in ? Date.now() + (tokens.expires_in * 1000) : null,
+      raw: tokens
     };
     await this.storage.set('tokens', this.tokens);
   }
@@ -67,7 +69,7 @@ class TokenManager {
       try {
         const newTokens = await this.oauthClient.refreshToken(tokens.refresh);
         await this.saveTokens(newTokens);
-        return newTokens.access_token;
+        return this.tokens.access;
       } catch (error) {
         throw new Error('Failed to refresh token. Please re-authenticate.');
       }
