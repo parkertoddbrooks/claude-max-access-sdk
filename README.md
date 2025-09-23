@@ -1,15 +1,11 @@
 # Claude OAuth SDK
 
-A Node.js SDK for authenticating with Claude using OAuth 2.0 and accessing Claude via Max Plan subscriptions.
+A Node.js SDK for authenticating with Claude using OAuth 2.0 and Max Plan subscriptions. This SDK provides multiple approaches to work with Claude's OAuth system.
 
 ## ⚠️ CRITICAL LIMITATION
 
-**OAuth tokens from Claude Max Plan are restricted to Claude Code only.** They cannot be used for:
-- Direct API calls to Anthropic
-- Third-party proxies (including OpenCode)
-- General API usage outside of Claude Code
+**OAuth tokens from Claude Max Plan are restricted to whitelisted applications only.** Direct API calls with OAuth tokens will fail with:
 
-When attempting to use OAuth tokens for API calls, you'll receive:
 ```json
 {
   "error": {
@@ -19,7 +15,15 @@ When attempting to use OAuth tokens for API calls, you'll receive:
 }
 ```
 
-**To use this SDK for API calls, you need regular Anthropic API keys, not OAuth tokens.**
+## ✅ Working Solutions
+
+This SDK provides **two working approaches**:
+
+### 1. OpenCode Backend (Recommended for Max Plan)
+Uses the OpenCode CLI tool as a backend to make requests. Since OpenCode is whitelisted, this works with Max Plan OAuth tokens.
+
+### 2. Regular API Keys
+Use standard Anthropic API keys for direct API access (requires Console access).
 
 ## Installation
 
@@ -29,35 +33,69 @@ npm install claude-oauth-sdk
 
 ## Quick Start
 
+### Using OpenCode Backend (Max Plan)
+
+First, authenticate OpenCode:
+```bash
+opencode auth login
+# Select: Anthropic → Claude Pro/Max
+```
+
+Then use the SDK:
 ```javascript
-const ClaudeSDK = require('claude-oauth-sdk');
+const ClaudeSDK = require('./claude-sdk-final');
 
 async function main() {
-  // Initialize SDK
-  const sdk = new ClaudeSDK({
-    storage: 'file' // Persist tokens to disk
-  });
+  const sdk = new ClaudeSDK(); // Auto-detects OpenCode
 
-  // Authenticate (opens browser, prompts for code)
-  await sdk.authenticate();
-
-  // Send a message
   const response = await sdk.sendMessage('Hello, Claude!');
-  console.log(response);
+  console.log(response.content[0].text);
 }
 
 main();
 ```
 
-## Authentication Flow
+### Using API Keys (Console)
 
-1. SDK generates OAuth URL with PKCE parameters
-2. Opens browser to Claude login page
-3. User logs in with Claude Max Plan account
-4. Browser redirects to callback URL with code
-5. User copies code from URL
-6. User pastes code into terminal prompt
-7. SDK exchanges code for access tokens
+```javascript
+const ClaudeSDK = require('./claude-sdk-final');
+
+async function main() {
+  const sdk = new ClaudeSDK({
+    method: 'apikey',
+    apiKey: 'your-api-key-here'
+  });
+
+  const response = await sdk.sendMessage('Hello, Claude!');
+  console.log(response.content[0].text);
+}
+
+main();
+```
+
+## Files Overview
+
+### Main SDK Files
+
+1. **`claude-sdk-final.js`** - Complete SDK with both OpenCode and API key support
+   - Auto-detects available authentication methods
+   - Seamless switching between backends
+   - Production-ready implementation
+
+2. **`use-opencode-backend.js`** - Dedicated OpenCode backend implementation
+   - Uses OpenCode CLI to make requests
+   - Works with Max Plan OAuth tokens
+   - Requires OpenCode to be installed and authenticated
+
+3. **`oauth-flow.js`** - OAuth flow tester and debugger
+   - Complete OAuth PKCE implementation
+   - Tests what works with OAuth tokens
+   - Useful for understanding OAuth limitations
+
+4. **`opencode-mimic.js`** - Experimental OAuth direct calls
+   - Attempts to mimic OpenCode's request signature
+   - Demonstrates OAuth token restrictions
+   - Educational purpose only (doesn't bypass restrictions)
 
 ## API Reference
 
@@ -66,44 +104,31 @@ main();
 Initialize the SDK.
 
 **Options:**
-- `storage` (string|object): Storage type - `'memory'`, `'file'`, or custom adapter
-- `storagePath` (string): Custom path for file storage
-- `debug` (boolean): Enable debug logging
-
-### `sdk.authenticate()`
-
-Complete authentication flow - opens browser and prompts for code.
-
-```javascript
-const tokens = await sdk.authenticate();
-```
+- `method` (string): `'opencode'`, `'apikey'`, or `'auto'` (default)
+- `apiKey` (string): Your Anthropic API key (for apikey method)
 
 ### `sdk.sendMessage(message, options)`
 
-Send a simple message to Claude.
+Send a message to Claude.
 
 ```javascript
-const response = await sdk.sendMessage('Hello Claude!', {
+const response = await sdk.sendMessage('What is 2+2?', {
   model: 'claude-3-5-sonnet-20241022',
   maxTokens: 1000
 });
 ```
 
-### `sdk.chat(messages, options)`
+### `sdk.authenticate()`
 
-Have a conversation with Claude.
+Interactive authentication flow.
 
 ```javascript
-const response = await sdk.chat([
-  { role: 'user', content: 'What is 2+2?' },
-  { role: 'assistant', content: '4' },
-  { role: 'user', content: 'What is 2+3?' }
-]);
+await sdk.authenticate(); // Guides through OpenCode or API key setup
 ```
 
 ### `sdk.isAuthenticated()`
 
-Check if authenticated.
+Check authentication status.
 
 ```javascript
 if (await sdk.isAuthenticated()) {
@@ -111,61 +136,54 @@ if (await sdk.isAuthenticated()) {
 }
 ```
 
-### `sdk.logout()`
+## Testing the SDK
 
-Clear stored tokens.
-
-```javascript
-await sdk.logout();
+### Test Final SDK
+```bash
+node claude-sdk-final.js
 ```
 
-## Storage Options
+### Test OAuth Flow
+```bash
+node oauth-flow.js
+```
+Follow prompts to understand OAuth limitations.
 
-### Memory Storage (Default)
-Tokens are stored in memory and lost when process ends.
-
-```javascript
-const sdk = new ClaudeSDK({
-  storage: 'memory'
-});
+### Test OpenCode Backend
+```bash
+node use-opencode-backend.js
 ```
 
-### File Storage
-Tokens are persisted to disk.
+## How It Works
 
-```javascript
-const sdk = new ClaudeSDK({
-  storage: 'file',
-  storagePath: './tokens.json' // Optional
-});
-```
+### OpenCode Backend Method
+1. SDK sends your message to OpenCode CLI
+2. OpenCode (being whitelisted) makes the API call
+3. Response is returned through OpenCode
+4. SDK parses and returns the response
 
-### Custom Storage
-Implement your own storage adapter.
+### API Key Method
+1. SDK makes direct API calls to Anthropic
+2. Uses standard x-api-key authentication
+3. No OAuth limitations apply
 
-```javascript
-class MyStorage {
-  async get(key) { /* ... */ }
-  async set(key, value) { /* ... */ }
-  async clear() { /* ... */ }
-}
+## Requirements
 
-const sdk = new ClaudeSDK({
-  storage: new MyStorage()
-});
-```
+- **For OpenCode Backend**:
+  - Claude Max Plan subscription
+  - OpenCode CLI installed (`npm install -g opencode`)
+  - Authenticated with OpenCode (`opencode auth login`)
 
-## Examples
-
-See the `examples/` directory for more examples:
-- `basic.js` - Simple authentication and message sending
-- `authenticate.js` - Manual authentication flow
+- **For API Key Method**:
+  - Anthropic Console account
+  - Valid API key
 
 ## Important Notes
 
-- **Max Plan Required**: You need a Claude Max Plan subscription
-- **Rate Limits**: Subject to your Max Plan limits (50-200 prompts per 5 hours)
-- **Proxy Dependency**: Routes through OpenCode's proxy server
+- **OAuth Tokens**: Only work with whitelisted applications (Claude Code, OpenCode)
+- **OpenCode**: Acts as a bridge for Max Plan users
+- **API Keys**: Provide direct access without OAuth restrictions
+- **Rate Limits**: Subject to your plan's limits
 
 ## License
 
