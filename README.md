@@ -63,7 +63,8 @@ node claude-chat.js
 
 ⚠️ **API keys and tokens are stored in plaintext** by default. The SDK will prompt you before saving credentials. Consider:
 - Using environment variables instead
-- File permissions are automatically set to 600 (owner read/write only) when saved
+- File permissions are set to 600 (owner read/write only) where supported (Unix/Linux/macOS)
+- On Windows, standard file permissions apply
 - Never committing credential files to version control
 
 ## API Reference

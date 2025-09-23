@@ -230,9 +230,18 @@ class ClaudeSDK {
             apiKey: this.apiKey,
             created: new Date().toISOString()
           }, null, 2));
+
           // Set file permissions to 600 (read/write for owner only)
-          await fs.chmod(filename, 0o600);
-          console.log('✅ API key authenticated and saved with restricted permissions (600)!');
+          try {
+            await fs.chmod(filename, 0o600);
+            console.log('✅ API key authenticated and saved with restricted permissions (600)!');
+          } catch (err) {
+            // chmod may fail on Windows, but the file is still saved
+            console.log('✅ API key authenticated and saved!');
+            if (process.platform !== 'win32') {
+              console.log('⚠️  Warning: Could not set restrictive permissions:', err.message);
+            }
+          }
         } else {
           console.log('✅ API key authenticated (session only)!');
         }

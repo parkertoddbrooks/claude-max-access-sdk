@@ -145,11 +145,21 @@ class ClaudeChatCLI {
         const openCodeDir = `${process.env.HOME}/.local/share/opencode`;
         await fs.mkdir(openCodeDir, { recursive: true });
 
-        // Write to OpenCode's auth file
+        // Write to OpenCode's auth file with restricted permissions
         const authPath = `${openCodeDir}/auth.json`;
         await fs.writeFile(authPath, JSON.stringify(openCodeAuth, null, 2));
 
-        console.log('✅ Tokens saved to:', authPath);
+        // Set file permissions to 600 (owner read/write only)
+        try {
+          await fs.chmod(authPath, 0o600);
+          console.log('✅ Tokens saved with restricted permissions (600) to:', authPath);
+        } catch (err) {
+          // chmod may fail on Windows, but the file is still saved
+          console.log('✅ Tokens saved to:', authPath);
+          if (process.platform !== 'win32') {
+            console.log('⚠️  Warning: Could not set restrictive permissions:', err.message);
+          }
+        }
 
         // Verify it was written
         const saved = JSON.parse(await fs.readFile(authPath, 'utf8'));
@@ -194,14 +204,27 @@ class ClaudeChatCLI {
         this.authenticated = true;
         console.log('✅ Successfully authenticated with API key!\n');
 
-        // Optionally save the key
+        // Optionally save the key with security warning
+        console.log('\n⚠️  SECURITY WARNING: API key will be saved in plaintext');
         const save = await this.question('Save API key for future use? (y/n): ');
         if (save.toLowerCase() === 'y') {
-          await fs.writeFile('./claude-api-key.json', JSON.stringify({
+          const filename = './claude-api-key.json';
+          await fs.writeFile(filename, JSON.stringify({
             apiKey: apiKey.trim(),
             created: new Date().toISOString()
           }, null, 2));
-          console.log('API key saved to claude-api-key.json\n');
+
+          // Set file permissions to 600 (owner read/write only)
+          try {
+            await fs.chmod(filename, 0o600);
+            console.log('API key saved with restricted permissions (600) to', filename, '\n');
+          } catch (err) {
+            // chmod may fail on Windows, but the file is still saved
+            console.log('API key saved to', filename, '\n');
+            if (process.platform !== 'win32') {
+              console.log('⚠️  Warning: Could not set restrictive permissions:', err.message, '\n');
+            }
+          }
         }
       } catch (error) {
         console.log('❌ Invalid API key\n');
