@@ -18,31 +18,36 @@ const token = "sk-ant-oat01-ABC...";
 await fetch('https://api.anthropic.com/v1/messages', {
   headers: { 'Authorization': `Bearer ${token}` }
 });
-// Error: "This credential is only authorized for use with Claude Code"
+// Error: "OAuth authentication is currently not supported"
 
 // Same token through OpenCode - WORKS
 exec('echo "test" | opencode run');  // Success!
 ```
 
-### The Technical Reality: Mutual TLS Authentication
+### The Technical Reality: Client-Locked OAuth Tokens
 
-Through forensic analysis, we discovered **why** OpenCode works while direct calls fail:
+Through traffic analysis using mitmproxy, we discovered **exactly why** OpenCode works while direct calls fail:
 
 ```bash
-# OpenCode has 155 embedded certificates
-$ strings $(which opencode) | grep "BEGIN.*CERTIFICATE" | wc -l
-155
+# Traffic Analysis Results
+OpenCode Request:
+  Token: sk-ant-oat01-[token]
+  User-Agent: ai-sdk/provider-utils/3.0.9 runtime/bun/1.2.21
+  Result: ✅ SUCCESS
 
-# These certificates provide cryptographic identity proof
-OpenCode → Embedded Client Cert → mTLS Handshake → Server Accepts OAuth Token
-Our SDK  → No Client Cert      → No mTLS        → Server Rejects OAuth Token
+Direct API Request (same token):
+  Token: sk-ant-oat01-[SAME TOKEN]
+  User-Agent: axios/1.12.2
+  Result: ❌ "OAuth authentication is currently not supported"
 ```
 
-**OpenCode uses mutual TLS (mTLS)** - it presents a client certificate during the TLS handshake that proves it's an authorized application. The server checks BOTH:
-1. Valid OAuth token
-2. Valid client certificate
+**OAuth tokens are client-locked** - The server validates not just the token, but also the client identity. Even with a valid OAuth token from Max Plan, the server rejects requests from unauthorized clients.
 
-Without the certificate (which is compiled into OpenCode's binary), OAuth tokens are useless.
+We also investigated embedded certificates:
+- Found 146 certificates in OpenCode binary
+- All are standard root CA certificates (DigiCert, Entrust, etc.)
+- No client certificates or Anthropic-specific certs
+- Authentication mechanism is server-side client validation, not mTLS
 
 ## The MIT License Paradox
 

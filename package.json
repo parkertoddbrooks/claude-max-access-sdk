@@ -2,14 +2,14 @@
   "name": "claude-oauth-sdk",
   "version": "0.1.0",
   "description": "A lightweight Node.js SDK for authenticating with Claude Max Plan using OAuth 2.0",
-  "main": "src/index.js",
+  "main": "claude-sdk-final.js",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src/**/*.js",
-    "example:basic": "node examples/basic.js",
-    "example:manual": "node examples/manual-auth.js"
+    "lint": "eslint *.js",
+    "chat": "node claude-chat.js",
+    "example": "node example.js"
   },
   "keywords": [
     "claude",

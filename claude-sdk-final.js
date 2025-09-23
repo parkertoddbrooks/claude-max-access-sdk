@@ -55,34 +55,57 @@ class ClaudeSDK {
   }
 
   /**
-   * Send message via OpenCode
+   * Send message via OpenCode (using safer spawn method)
    */
   async sendViaOpenCode(message) {
+    const { spawn } = require('child_process');
+
     return new Promise((resolve, reject) => {
-      const escapedMessage = message.replace(/"/g, '\\"').replace(/\$/g, '\\$');
-      const command = `echo "${escapedMessage}" | opencode run 2>&1`;
-
-      exec(command, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
-        if (stdout) {
-          const cleaned = stdout
-            .replace(/\x1b\[[0-9;]*m/g, '')
-            .replace(/\[0m/g, '')
-            .split('\n')
-            .filter(line => line.trim())
-            .join('\n')
-            .trim();
-
-          resolve({
-            content: [{ type: 'text', text: cleaned }],
-            id: 'msg_' + Date.now(),
-            model: 'claude-3-5-sonnet-20241022',
-            role: 'assistant',
-            method: 'opencode'
-          });
-        } else {
-          reject(error || new Error('No output from OpenCode'));
-        }
+      const child = spawn('opencode', ['run'], {
+        stdio: ['pipe', 'pipe', 'pipe']
       });
+
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      child.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      child.on('error', (error) => {
+        reject(new Error(`Failed to spawn opencode: ${error.message}`));
+      });
+
+      child.on('close', (code) => {
+        if (code !== 0 && !stdout) {
+          reject(new Error(`OpenCode exited with code ${code}: ${stderr}`));
+          return;
+        }
+
+        const cleaned = stdout
+          .replace(/\x1b\[[0-9;]*m/g, '')
+          .replace(/\[0m/g, '')
+          .split('\n')
+          .filter(line => line.trim())
+          .join('\n')
+          .trim();
+
+        resolve({
+          content: [{ type: 'text', text: cleaned }],
+          id: 'msg_' + Date.now(),
+          model: 'claude-3-5-sonnet-20241022',
+          role: 'assistant',
+          method: 'opencode'
+        });
+      });
+
+      // Write message to stdin
+      child.stdin.write(message + '\n');
+      child.stdin.end();
     });
   }
 
@@ -94,7 +117,10 @@ class ClaudeSDK {
       'https://api.anthropic.com/v1/messages',
       {
         model: options.model || 'claude-3-5-sonnet-20241022',
-        messages: [{ role: 'user', content: message }],
+        messages: [{
+          role: 'user',
+          content: typeof message === 'string' ? message : JSON.stringify(message)
+        }],
         max_tokens: options.maxTokens || 1000
       },
       {
@@ -189,13 +215,22 @@ class ClaudeSDK {
       try {
         await this.sendViaAPIKey('Say "Test successful" and nothing else.');
 
-        // Save the key
-        await fs.writeFile('./claude-api-key.json', JSON.stringify({
-          apiKey: this.apiKey,
-          created: new Date().toISOString()
-        }, null, 2));
+        // Security warning
+        console.log('\n⚠️  SECURITY WARNING: API key will be saved in plaintext');
+        console.log('   Location: ./claude-api-key.json');
+        const saveChoice = await question('   Save API key for future sessions? (y/N): ');
 
-        console.log('✅ API key authenticated and saved!');
+        if (saveChoice.toLowerCase() === 'y') {
+          // Save the key
+          await fs.writeFile('./claude-api-key.json', JSON.stringify({
+            apiKey: this.apiKey,
+            created: new Date().toISOString()
+          }, null, 2));
+          console.log('✅ API key authenticated and saved!');
+        } else {
+          console.log('✅ API key authenticated (session only)!');
+        }
+
         this.method = 'apikey';
         readline.close();
         return true;

@@ -29,13 +29,13 @@ When attempting to use these OAuth tokens for API calls:
 ```json
 {
   "error": {
-    "type": "invalid_request_error",
-    "message": "This credential is only authorized for use with Claude Code and cannot be used for other API requests."
+    "type": "authentication_error",
+    "message": "OAuth authentication is currently not supported."
   }
 }
 ```
 
-**Discovery**: OAuth tokens are restricted to whitelisted applications only.
+**Discovery**: OAuth tokens are client-locked to whitelisted applications only.
 
 ### Phase 3: Investigating OpenCode
 
@@ -135,7 +135,7 @@ This raises important questions:
 - Should licenses distinguish between "code availability" and "functional capability"?
 - How do we classify software that's technically open but practically closed?
 
-## Technical Proof Points
+## Technical Proof Points (Updated with Traffic Analysis)
 
 ### Test 1: Direct OAuth Token Usage
 ```javascript
@@ -146,8 +146,24 @@ const token = "sk-ant-oat01-ABC...";
 await fetch('https://api.anthropic.com/v1/messages', {
   headers: { 'Authorization': `Bearer ${token}` }
 });
-// Result: "This credential is only authorized for use with Claude Code"
+// Result: "OAuth authentication is currently not supported"
 ```
+
+### Traffic Analysis Discovery
+Through mitmproxy interception, we captured the exact headers:
+```bash
+# OpenCode Request (WORKS)
+User-Agent: ai-sdk/provider-utils/3.0.9 runtime/bun/1.2.21
+Authorization: Bearer sk-ant-oat01-[token]
+Result: ✅ SUCCESS
+
+# Our Direct Request (FAILS)
+User-Agent: axios/1.12.2
+Authorization: Bearer sk-ant-oat01-[SAME TOKEN]
+Result: ❌ "OAuth authentication is currently not supported"
+```
+
+**Critical Finding**: The SAME OAuth token that works through OpenCode fails when used directly, proving server-side client validation.
 
 ### Test 2: Same Token Through OpenCode
 ```bash
