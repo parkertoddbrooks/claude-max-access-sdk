@@ -27,10 +27,10 @@ class TokenManager {
    */
   async saveTokens(tokens) {
     this.tokens = {
+      type: 'success',
       access: tokens.access_token,
       refresh: tokens.refresh_token,
-      expires: tokens.expires_in ? Date.now() + (tokens.expires_in * 1000) : null,
-      raw: tokens
+      expires: tokens.expires_in ? Date.now() + (tokens.expires_in * 1000) : null
     };
     await this.storage.set('tokens', this.tokens);
   }

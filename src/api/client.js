@@ -1,6 +1,8 @@
 const axios = require('axios');
 
-const API_URL = 'https://api.opencode.ai/anthropic/v1/messages';
+// Use standard Anthropic API endpoint
+// The interceptor will handle OAuth authentication
+const API_URL = 'https://api.anthropic.com/v1/messages';
 
 class APIClient {
   constructor(tokenManager) {
@@ -19,18 +21,37 @@ class APIClient {
     console.log('Access token:', accessToken ? accessToken.substring(0, 30) + '...' : 'NO TOKEN');
     console.log('With payload:', JSON.stringify(payload, null, 2));
 
+    // Check if this is an OAuth token (starts with sk-ant-oat)
+    const isOAuthToken = accessToken && accessToken.startsWith('sk-ant-oat');
+
+    const headers = {
+      'content-type': 'application/json',
+      'anthropic-version': '2023-06-01'
+    };
+
+    if (isOAuthToken) {
+      // OAuth tokens use Bearer auth and special beta headers
+      headers['authorization'] = `Bearer ${accessToken}`;
+      headers['anthropic-beta'] = 'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14';
+      // DO NOT include x-api-key
+    } else {
+      // Regular API keys use x-api-key header
+      headers['x-api-key'] = accessToken;
+      headers['anthropic-beta'] = 'claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14';
+    }
+
+    console.log('Headers:', headers);
+
     try {
-      const response = await axios.post(API_URL, payload, {
-        headers: {
-          'authorization': `Bearer ${accessToken}`,
-          'content-type': 'application/json',
-          'anthropic-version': '2023-06-01',
-          'anthropic-beta': 'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14'
-        }
-      });
+      const response = await axios.post(API_URL, payload, { headers });
 
       console.log('API Response status:', response.status);
       console.log('API Response data:', response.data);
+
+      // Check if response is text (error) instead of JSON
+      if (typeof response.data === 'string') {
+        throw new Error(`API returned text instead of JSON: ${response.data}`);
+      }
 
       return response.data;
     } catch (error) {

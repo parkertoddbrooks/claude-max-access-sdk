@@ -3,6 +3,7 @@ const { exec } = require('child_process');
 const OAuthClient = require('./auth/oauth');
 const TokenManager = require('./auth/token');
 const APIClient = require('./api/client');
+const OAuthInterceptor = require('./auth/intercept');
 const { createStorage } = require('./utils/storage');
 
 class ClaudeSDK {
@@ -15,6 +16,23 @@ class ClaudeSDK {
     this.oauthClient = new OAuthClient();
     this.tokenManager = new TokenManager(this.storage);
     this.apiClient = new APIClient(this.tokenManager);
+
+    // Install OAuth interceptor if we have OAuth tokens
+    this.interceptor = new OAuthInterceptor(this.tokenManager);
+
+    if (options.useInterceptor !== false) {
+      this.enableInterceptor();
+    }
+  }
+
+  /**
+   * Enable fetch/axios interceptor for OAuth
+   */
+  enableInterceptor() {
+    this.interceptor.install();
+    if (this.debug) {
+      console.log('OAuth interceptor enabled');
+    }
   }
 
   /**

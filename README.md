@@ -2,6 +2,25 @@
 
 A Node.js SDK for authenticating with Claude using OAuth 2.0 and accessing Claude via Max Plan subscriptions.
 
+## ⚠️ CRITICAL LIMITATION
+
+**OAuth tokens from Claude Max Plan are restricted to Claude Code only.** They cannot be used for:
+- Direct API calls to Anthropic
+- Third-party proxies (including OpenCode)
+- General API usage outside of Claude Code
+
+When attempting to use OAuth tokens for API calls, you'll receive:
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "message": "This credential is only authorized for use with Claude Code and cannot be used for other API requests."
+  }
+}
+```
+
+**To use this SDK for API calls, you need regular Anthropic API keys, not OAuth tokens.**
+
 ## Installation
 
 ```bash
